@@ -17,16 +17,19 @@ class GatewayResource(Resource):
       
       params:Dict[str,str] = {'city':city,'date':date}
 
-      weather_response:Response = requests.get(WEATHER_API_URL,params=params)
-      event_response:Response = requests.get(EVENT_API_URL,params=params)
+      weather_r:Response = requests.get(WEATHER_API_URL,params=params)
+      event_r:Response = requests.get(EVENT_API_URL,params=params)
 
-      if weather_response.status_code != ReturnCode.OK._value_ or event_response.status_code != ReturnCode.OK._value_:
-         return {},ReturnCode.NOT_FOUND._value_
+      if weather_r.status_code == ReturnCode.OK._value_ or event_r.status_code == ReturnCode.OK._value_:
+         weather_data:List[Dict[str,str]] = weather_r.json()
+         event_data:List[Dict[str,str]] = event_r.json()
+         return {'city':city,'date':date, 'weather':weather_data,'event':event_data},ReturnCode.OK._value_
+
+
+      if weather_r.status_code == ReturnCode.NO_CONTENT._value_ or event_r.status_code == ReturnCode.NO_CONTENT._value_:
+         return {},ReturnCode.NO_CONTENT._value_
       
-      weather_data:List[Dict[str,str]] = weather_response.json()
-      event_data:List[Dict[str,str]] = event_response.json()
+      return {},ReturnCode.NOT_FOUND._value_
 
-      response:Dict[str,List[Dict[str,str]]|str] = {'city':city,'date':date, 'weather':weather_data,'event':event_data}
-
-      return response,ReturnCode.OK._value_
+      
 
