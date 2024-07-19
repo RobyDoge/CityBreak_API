@@ -4,22 +4,25 @@ from typing import List,Tuple,Dict,Any
 from datetime import date as Date
 
 from utils import str_to_date,ReturnCode
-from global_events import db
+from globals_events import db
 
 
 class EventResource(Resource):
-   def get(self)->Tuple[int,List[Dict[str,str]]]:
+   def get(self)->Tuple[List[Dict[str,str]],int]:
       city:str|None = request.args.get('city')
+      date:Date|None = str_to_date(request.args.get('date'))   
 
       conditions:Dict[str,Any] = {}
-      #sa se adauge mai multa filtrare in fucntie de restu
+      
       if city:
          conditions['city'] = city
+      if date:
+         conditions['date'] = date
       
       events:List['EventModel'] = filter_events(conditions)
       if not events:
-         return ReturnCode.NO_CONTENT._value_,[]
-      return ReturnCode.OK._value_,[e.to_dict() for e in events]
+         return [],ReturnCode.NO_CONTENT._value_
+      return [e.to_dict() for e in events],ReturnCode.OK._value_
 
 
    def post(self)->int:

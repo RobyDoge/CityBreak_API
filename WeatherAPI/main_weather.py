@@ -1,6 +1,7 @@
 from globals_weather import app,db,api
 from weather import WeatherResource
  
+
 @app.route('/')
 def index()->str:
    return """
@@ -11,13 +12,11 @@ def index()->str:
    </html>
    """
 
-api.add_resource(WeatherResource, '/weather')
 
+api.add_resource(WeatherResource, '/weather')
 
 with app.app_context():
    db.create_all()
-
-
 
 
 if __name__ == '__main__':

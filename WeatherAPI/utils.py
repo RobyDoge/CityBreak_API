@@ -21,8 +21,6 @@ def str_to_date(date_str:str|None)->Date|None:
    date:Date
    try:
        date = Date(year=date_list[0],month=date_list[1],day=date_list[2])
-       if date < Date.today():
-           raise ValueError
    except ValueError:
          return None
    else:

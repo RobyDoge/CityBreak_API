@@ -1,7 +1,7 @@
 from datetime import date as Date
 from flask import request
 from flask_restful import Resource
-from typing import List,Dict,Any
+from typing import List,Dict,Tuple,Any
 from sqlalchemy import and_
 
 from utils import str_to_date, ReturnCode
@@ -9,7 +9,7 @@ from globals_weather import db
 
 
 class WeatherResource(Resource):
-   def get(self)->List[Dict[str,str]]:
+   def get(self)->Tuple[List[Dict[str,str]],int]:
       city:str|None = request.args.get('city') or None
       date:Date|None = str_to_date(request.args.get('date'))
       
@@ -20,8 +20,8 @@ class WeatherResource(Resource):
          conditions['date'] = date
       weather:List['WeatherModel'] = filter_weather(conditions)
       if not weather:
-         return []
-      return [w.to_dict() for w in weather]
+         return [],ReturnCode.NO_CONTENT._value_
+      return [w.to_dict() for w in weather],ReturnCode.OK._value_
 
    def post(self)->int:
       city:str|None = request.args.get('city')
