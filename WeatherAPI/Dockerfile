@@ -3,7 +3,7 @@ FROM python
 ENV DB_HOST=localhost
 ENV DB_USER=roby
 ENV DB_PASSWORD=1234
-ENV DB_NAME=events
+ENV DB_NAME=citybreak
 ENV DB_PORT=5000
 ENV HOST = 0.0.0.0
 

@@ -1,4 +1,11 @@
 Flask
 Flask-session
+SQLAlchemy
+Flask-SQLAlchemy
+mysqlclient
 Flask-RESTful
 requests
+Flask-WTF
+Flask-login
+WTForms
+email-validator
