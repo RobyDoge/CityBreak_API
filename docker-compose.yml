@@ -1,0 +1,90 @@
+services:
+  citybreak-db:
+    image: "mysql"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1000M
+    environment:
+    - MYSQL_ROOT_PASSWORD=1234
+    - MYSQL_USER=roby
+    - MYSQL_PASSWORD=1234
+    - MYSQL_DATABASE=citybreak-db
+    expose:
+    - 3306
+    networks:
+    - backend
+
+
+  events:
+    build: EventAPI
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200M
+    environment:
+    - DB_HOST=citybreak-db
+    - DB_USER=roby
+    - DB_PASSWORD=1234
+    - DB_NAME=citybreak-db
+    - PORT=5000
+    - HOST=0.0.0.0
+    expose:
+    - 5000
+    networks:
+    - backend
+    depends_on:
+    - citybreak-db
+
+
+  weather:
+    build: WeatherAPI
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200M
+    environment:
+    - DB_HOST=citybreak-db
+    - DB_USER=roby
+    - DB_PASSWORD=1234
+    - DB_NAME=citybreak-db
+    - PORT=5000
+    - HOST=0.0.0.0
+    expose:
+    - 5000
+    networks:
+    - backend
+    depends_on:
+    - citybreak-db
+
+    
+  gateway:
+    build: GatewayAPI
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200M
+    environment:
+    - PORT=5000
+    - HOST=0.0.0.0
+    - WEATHER_URL=http://weather:5000/weather
+    - EVENT_URL=http://events:5000/events
+    ports:
+    - 8080:5000
+    networks:
+    - backend
+    depends_on:
+    - events
+    - weather
+
+
+
+networks:
+  backend:
+    driver: bridge
+    name: backend-network
+  

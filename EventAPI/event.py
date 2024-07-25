@@ -20,6 +20,12 @@ class EventResource(Resource):
          conditions['date'] = date
       
       events:List['EventModel'] = filter_events(conditions)
+
+      # events = db.session.query(EventModel)
+      # if city:
+      #    events = events.filter(EventModel.city.like(city)) 
+
+
       if not events:
          return [],ReturnCode.NO_CONTENT._value_
       return [e.to_dict() for e in events],ReturnCode.OK._value_
@@ -30,22 +36,12 @@ class EventResource(Resource):
       date:Date|None = str_to_date(request.args.get('date'))
       title:str|None = request.args.get('title')
       description:str|None = request.args.get('description')
-      aux:str|None = request.args.get('price')
-      price:float|None = float(aux) if aux else None
-      category:str|None = request.args.get('category')
-      weather_recommandation:str|None = request.args.get('weather_recommandation')
-      location:str|None = request.args.get('location')
 
-      if price and price < 0:
-         return ReturnCode.BAD_REQUEST._value_
-      if not all([city,date,title,description,price,category,weather_recommandation,location]):
+      if not all([city,date,title,description]):
          return ReturnCode.BAD_REQUEST._value_
 
       e:EventModel = EventModel(city=city,date=date,title=title,
-                                description=description,
-                                price=price,category=category,
-                                weather_recommandation=weather_recommandation,
-                                location=location) #type: ignore
+                                description=description) #type: ignore
       
       db.session.add(e)
       db.session.commit()
@@ -88,10 +84,6 @@ class EventModel(db.Model):
    title:str = db.Column(db.String(128))
    description:str = db.Column(db.String(1024))
    state:bool  = db.Column(db.Boolean,default=True)
-   price:float  = db.Column(db.Float,default=-1.0)
-   category: str = db.Column(db.String(128))
-   weather_recommandation:str = db.Column(db.String(128))
-   location:str = db.Column(db.String(128))
    
 
    def to_dict(self)->Dict[str,str]:
