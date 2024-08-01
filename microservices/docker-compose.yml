@@ -98,102 +98,6 @@ services:
           cpus: '0.5'
           memory: 600M
 
-  # service-one-db:
-  #   image: mysql
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=abc123
-  #     - MYSQL_USER=keyvalue
-  #     - MYSQL_PASSWORD=abc123
-  #     - MYSQL_DATABASE=keyvalue
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
-  #     interval: 20s
-  #     retries: 5
-  #     timeout: 5s
-  #     start_period: 30s
-  #   expose:
-  #     - 3306
-  #   networks:
-  #     siemens:
-  #       ipv4_address: 10.10.10.7
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.5'
-  #         memory: 500M
-
-  # service-one-1:
-  #   build: service_one
-  #   depends_on:
-  #     microskel:
-  #       condition: service_started
-  #     consul-agent:
-  #       condition: service_started
-  #     logstash-agent:
-  #       condition: service_started
-  #     service-one-db:
-  #       condition: service_healthy
-  #   environment:
-  #     - MICROSERVICE_NAME=service_one
-  #     - MICROSERVICE_HOST=service-one-1
-  #     - MICROSERVICE_PORT=5000
-  #     - MICROSERVICE_DEBUG=True
-  #     - CONSUL_CHECK_INTERVAL=20s
-  #     - CONSUL_CHECK_TIMEOUT=10s
-  #     - CONSUL_HOST=consul-agent
-  #     - CONSUL_PORT=8500
-  #     - LOGSTASH_AGENT_HOST=logstash-agent
-  #     - LOGSTASH_AGENT_PORT=51515
-  #     - LOGSTASH_ENABLED=True
-  #     - USE_DB=True
-  #     - MICROSERVICE_DB_URI=mysql://keyvalue:abc123@service-one-db:3306/keyvalue
-  #   networks:
-  #     siemens:
-  #       ipv4_address: 10.10.10.10
-  #   ports:
-  #     - "8080:5000"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.25'
-  #         memory: 100M
-
-  # service-one-2:
-  #   build: service_one
-  #   depends_on:
-  #     microskel:
-  #       condition: service_started
-  #     consul-agent:
-  #       condition: service_started
-  #     logstash-agent:
-  #       condition: service_started
-  #     service-one-db:
-  #       condition: service_healthy
-  #   environment:
-  #     - MICROSERVICE_NAME=service_one
-  #     - MICROSERVICE_HOST=service-one-2
-  #     - MICROSERVICE_PORT=5000
-  #     - MICROSERVICE_DEBUG=True
-  #     - CONSUL_CHECK_INTERVAL=20s
-  #     - CONSUL_CHECK_TIMEOUT=10s
-  #     - CONSUL_HOST=consul-agent
-  #     - CONSUL_PORT=8500
-  #     - USE_DB=True
-  #     - LOGSTASH_AGENT_HOST=logstash-agent
-  #     - LOGSTASH_AGENT_PORT=51515
-  #     - LOGSTASH_ENABLED=True
-  #     - MICROSERVICE_DB_URI=mysql://keyvalue:abc123@service-one-db/keyvalue
-  #   networks:
-  #     siemens:
-  #       ipv4_address: 10.10.10.11
-  #   ports:
-  #     - "8081:5000"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.25'
-  #         memory: 100M
-
   # service-two-1:
   #   build: service_two
   #   depends_on:
@@ -227,38 +131,6 @@ services:
   #         cpus: '0.25'
   #         memory: 100M
 
-  # service-two-2:
-  #   build: service_two
-  #   depends_on:
-  #     microskel:
-  #       condition: service_started
-  #     consul-agent:
-  #       condition: service_started
-  #     logstash-agent:
-  #       condition: service_started
-  #   environment:
-  #     - MICROSERVICE_NAME=service_two
-  #     - MICROSERVICE_HOST=service-two-2
-  #     - MICROSERVICE_PORT=5000
-  #     - MICROSERVICE_DEBUG=True
-  #     - CONSUL_CHECK_INTERVAL=20s
-  #     - CONSUL_CHECK_TIMEOUT=10s
-  #     - CONSUL_HOST=consul-agent
-  #     - CONSUL_PORT=8500
-  #     - LOGSTASH_AGENT_HOST=logstash-agent
-  #     - LOGSTASH_AGENT_PORT=51515
-  #     - LOGSTASH_ENABLED=True
-  #     - USE_DB=False
-  #   networks:
-  #     siemens:
-  #       ipv4_address: 10.10.10.13
-  #   ports:
-  #     - "8083:5000"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.25'
-  #         memory: 100M
 
   events-db:
     image: mysql
@@ -313,7 +185,7 @@ services:
       - MICROSERVICE_DB_URI=mysql://roby:abc123@events-db:3306/events
     networks:
        siemens:
-         ipv4_address: 10.10.10.10
+         ipv4_address: 10.10.10.8
     ports:
        - "8080:5000"
     deploy:
@@ -322,9 +194,75 @@ services:
           cpus: '0.25'
           memory: 100M
 
+  weather-db:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=abc123
+      - MYSQL_USER=roby
+      - MYSQL_PASSWORD=abc123
+      - MYSQL_DATABASE=weather
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
+      interval: 20s
+      retries: 5
+      timeout: 5s
+      start_period: 30s
+    expose:
+      - 3306
+    networks:
+      siemens:
+        ipv4_address: 10.10.10.9
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 500M
+    volumes:
+      - weather-db:/var/lib/mysql
+
+  weather:
+    build: service_weather
+    depends_on:
+      microskel:
+        condition: service_started
+      consul-agent:
+        condition: service_started
+      logstash-agent:
+        condition: service_started
+      weather-db:
+        condition: service_healthy
+    environment:
+      - MICROSERVICE_NAME=weather
+      - MICROSERVICE_HOST=weather
+      - MICROSERVICE_PORT=5000
+      - MICROSERVICE_DEBUG=True
+      - CONSUL_CHECK_INTERVAL=20s
+      - CONSUL_CHECK_TIMEOUT=10s
+      - CONSUL_HOST=consul-agent
+      - CONSUL_PORT=8500
+      - LOGSTASH_AGENT_HOST=logstash-agent
+      - LOGSTASH_AGENT_PORT=51515
+      - LOGSTASH_ENABLED=True 
+      - USE_DB=True
+      - MICROSERVICE_DB_URI=mysql://roby:abc123@weather-db:3306/weather
+    networks:
+       siemens:
+         ipv4_address: 10.10.10.10
+    ports:
+       - "8081:5000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 100M
+
+
+
 volumes:
   events-db:
+  weather-db:
   elasticsearch:
+
   
 
 networks:

@@ -7,7 +7,7 @@ from microskel.db_module import Base
 
 
 class EventModel(Base):
-   __tablename__ = 'events'
+   __tablename__ = 'event'
    id = Column(Integer,primary_key=True)
    city = Column(String(128))
    date = Column(String(128))
@@ -84,6 +84,7 @@ def configure_views(app):
          return 'BAD REQUEST', 400
       else:
          db.session.delete(event)
+         db.session.commit()
          return 'OK', 200
 
       
