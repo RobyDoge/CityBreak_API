@@ -186,8 +186,8 @@ services:
     networks:
        siemens:
          ipv4_address: 10.10.10.8
-    ports:
-       - "8080:5000"
+    expose:
+      - 5000
     deploy:
       resources:
         limits:
@@ -248,8 +248,8 @@ services:
     networks:
        siemens:
          ipv4_address: 10.10.10.10
-    ports:
-       - "8081:5000"
+    expose:
+      - 5000
     deploy:
       resources:
         limits:
@@ -282,7 +282,7 @@ services:
       siemens:
         ipv4_address: 10.10.10.11
     ports:
-      - "8082:5000"
+      - "8080:5000"
     deploy:
       resources:
         limits:

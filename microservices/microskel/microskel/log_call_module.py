@@ -23,7 +23,7 @@ def log_call(f):
             log = f'Call to {f.__name__}({params}) '
             log += f'gives {res}' if not exc else 'raises {type(exc)}: {exc}'
             if app:
-                app.logger.debug(log)
+                app.logger.info(log)
             if exc:
                 raise exc
     return wrapper

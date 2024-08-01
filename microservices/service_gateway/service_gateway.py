@@ -1,20 +1,14 @@
 from microskel.service_template import ServiceTemplate
-import events_client_module
-import weather_client_module
+import gateway_module
 
 
 class GatewayService(ServiceTemplate):
 
     def get_modules(self):
-        return super().get_modules() + [events_client_module.GatewayModule(self),
-                                        weather_client_module.GatewayModule(self)]
+        return super().get_modules() + [gateway_module.GatewayModule(self)]
 
     def get_python_modules(self):
-        return super().get_python_modules() + [events_client_module, weather_client_module]
-
-    def custom_function(self, city):  # ca si exemplu
-        data = self.injector.get(events_client_module.GatewayModule).get_events(city)
-        return data
+        return super().get_python_modules() + [gateway_module]
 
 
 if __name__ == '__main__':
