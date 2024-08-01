@@ -4,6 +4,7 @@ import random
 from decouple import config
 from microskel.service_discovery import ServiceDiscovery, HostAndPort
 from microskel.log_call_module import log_call
+import threading
 
 
 class ConsulDiscovery(ServiceDiscovery):
@@ -12,14 +13,18 @@ class ConsulDiscovery(ServiceDiscovery):
         self.services = {}  # key = service_name; value = list of healthy endpoints
         self.consul_client = consul.Consul(host=config('CONSUL_HOST'), verify=False,
                                            port=config('CONSUL_PORT', cast=int))
+        
 
     @log_call
     def discover(self, service_name: str) -> HostAndPort:
         registrations = self.services.get(service_name)
         # load balancing: TODO
+        if service_name not in self.services:
+            thread = threading.Timer(60, self.do_discover, args=(service_name,))
+            thread.start()
+
         return random.choice(registrations) if registrations else self.do_discover(service_name)
 
-    #TODO: call this in a thread
     @log_call
     def do_discover(self, service_name: str) -> HostAndPort:
         self.services = self.consul_client.catalog.services()[1]
