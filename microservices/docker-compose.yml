@@ -256,7 +256,39 @@ services:
           cpus: '0.25'
           memory: 100M
 
-
+  gateway:
+    build: service_gateway
+    depends_on:
+      microskel:
+        condition: service_started
+      consul-agent:
+        condition: service_started
+      logstash-agent:
+        condition: service_started
+    environment:
+      - MICROSERVICE_NAME=gateway
+      - MICROSERVICE_HOST=gateway
+      - MICROSERVICE_PORT=5000
+      - MICROSERVICE_DEBUG=True
+      - CONSUL_CHECK_INTERVAL=20s
+      - CONSUL_CHECK_TIMEOUT=10s
+      - CONSUL_HOST=consul-agent
+      - CONSUL_PORT=8500
+      - LOGSTASH_AGENT_HOST=logstash-agent
+      - LOGSTASH_AGENT_PORT=51515
+      - LOGSTASH_ENABLED=True
+      - USE_DB=False
+    networks:
+      siemens:
+        ipv4_address: 10.10.10.11
+    ports:
+      - "8082:5000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 100M
+    
 
 volumes:
   events-db:

@@ -35,6 +35,7 @@ class ConsulDiscovery(ServiceDiscovery):
         registrations = [HostAndPort(entry['Service']['Address'], entry['Service']['Port'])
                          for entry in healthy_services[1]]
         self.services[service_name] = registrations
+        print(f'Registrations for {service_name}: {registrations}')
         return self.discover(service_name) if registrations else None
 
 

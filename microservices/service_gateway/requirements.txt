@@ -1,0 +1,7 @@
+Flask
+Flask-session
+SQLAlchemy
+Flask-SQLAlchemy
+mysqlclient
+Flask-RESTful
+python-decouple
