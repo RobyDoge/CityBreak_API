@@ -10,7 +10,6 @@ from weather_client_module import WeatherClient
 class GatewayModule(Module):
    def __init__(self, service):
       self.service = service
-      self.retry_strategie = config('RETRY_STRATEGY')
 
    def configure(self, binder: Binder) -> None:
       events_client = EventsClient(self.service)
@@ -30,7 +29,7 @@ def configure_views(app):
    @app.route('/events', methods=['POST', 'PUT', 'DELETE'])
    def event_post_put_delete(events_client: EventsClient):
       from utils import proxy_request
-      return proxy_request(request, f'{events_client.endpoint().to_base_url()}/events')
+      return proxy_request(request, f'{events_client.get_endpoint().to_base_url()}/events')
    
 
    @app.route('/get_weather/<city>')

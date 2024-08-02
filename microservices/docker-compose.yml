@@ -98,11 +98,12 @@ services:
           cpus: '0.5'
           memory: 600M
 
+
   events-db:
     image: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=abc123
-      - MYSQL_USER=roby
+      - MYSQL_USER=events
       - MYSQL_PASSWORD=abc123
       - MYSQL_DATABASE=events
     healthcheck:
@@ -136,6 +137,7 @@ services:
       events-db:
         condition: service_healthy
     environment:
+      - LOAD_BALANCER_STRATEGY=ROUND_ROBIN
       - MICROSERVICE_NAME=events
       - MICROSERVICE_HOST=events
       - MICROSERVICE_PORT=5000
@@ -148,12 +150,49 @@ services:
       - LOGSTASH_AGENT_PORT=51515
       - LOGSTASH_ENABLED=True
       - USE_DB=True
-      - MICROSERVICE_DB_URI=mysql://roby:abc123@events-db:3306/events
+      - MICROSERVICE_DB_URI=mysql://events:abc123@events-db:3306/events
     networks:
        siemens:
          ipv4_address: 10.10.10.8
     expose:
       - 5000
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 100M
+
+  events2:
+    build: service_events
+    depends_on:
+      microskel:
+        condition: service_started
+      consul-agent:
+        condition: service_started
+      logstash-agent:
+        condition: service_started
+      events-db:
+        condition: service_healthy
+    environment:
+      - LOAD_BALANCER_STRATEGY=ROUND_ROBIN
+      - MICROSERVICE_NAME=events
+      - MICROSERVICE_HOST=events2
+      - MICROSERVICE_PORT=5001
+      - MICROSERVICE_DEBUG=True
+      - CONSUL_CHECK_INTERVAL=20s
+      - CONSUL_CHECK_TIMEOUT=10s
+      - CONSUL_HOST=consul-agent
+      - CONSUL_PORT=8500
+      - LOGSTASH_AGENT_HOST=logstash-agent
+      - LOGSTASH_AGENT_PORT=51515
+      - LOGSTASH_ENABLED=True
+      - USE_DB=True
+      - MICROSERVICE_DB_URI=mysql://events:abc123@events-db:3306/events
+    networks:
+       siemens:
+         ipv4_address: 10.10.10.12
+    expose:
+      - 5001
     deploy:
       resources:
         limits:
@@ -198,6 +237,7 @@ services:
       weather-db:
         condition: service_healthy
     environment:
+      - LOAD_BALANCER_STRATEGY=ROUND_ROBIN
       - MICROSERVICE_NAME=weather
       - MICROSERVICE_HOST=weather
       - MICROSERVICE_PORT=5000
@@ -232,6 +272,8 @@ services:
       logstash-agent:
         condition: service_started
     environment:
+      - LOAD_BALANCER_STRATEGY=ROUND_ROBIN
+      - RETRY_STRATEGY=EXPONENTIAL_BACKOFF
       - MICROSERVICE_NAME=gateway
       - MICROSERVICE_HOST=gateway
       - MICROSERVICE_PORT=5000
@@ -244,7 +286,6 @@ services:
       - LOGSTASH_AGENT_PORT=51515
       - LOGSTASH_ENABLED=True
       - USE_DB=False
-      - RETRY_STRATEGY=EXPONENTIAL_BACKOFF
     networks:
       siemens:
         ipv4_address: 10.10.10.11

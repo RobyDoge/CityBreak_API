@@ -7,13 +7,17 @@ from microskel.log_call_module import log_call
 import threading
 
 
+from microskel.load_balance_module import get_load_balancer
+
+
 class ConsulDiscovery(ServiceDiscovery):
     def __init__(self, app):
         self.app = app
         self.services = {}  # key = service_name; value = list of healthy endpoints
         self.consul_client = consul.Consul(host=config('CONSUL_HOST'), verify=False,
                                            port=config('CONSUL_PORT', cast=int))
-        
+        self.load_balancer = get_load_balancer(config('LOAD_BALANCER_STRATEGY'))
+
 
     @log_call
     def discover(self, service_name: str) -> HostAndPort:
@@ -23,7 +27,7 @@ class ConsulDiscovery(ServiceDiscovery):
             thread = threading.Timer(60, self.do_discover, args=(service_name,))
             thread.start()
 
-        return random.choice(registrations) if registrations else self.do_discover(service_name)
+        return self.load_balancer.get_instance(registrations) if registrations else self.do_discover(service_name)
 
     @log_call
     def do_discover(self, service_name: str) -> HostAndPort:

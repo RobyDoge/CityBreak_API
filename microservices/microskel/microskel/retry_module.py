@@ -1,67 +1,65 @@
-from functools import wraps
 import time
-import random
+from abc import ABC, abstractmethod
+from microskel.log_call_module import log_call
+
+class RetryStrategy(ABC):
+    @abstractmethod
+    def execute(self, func, *args, **kwargs):
+        pass
 
 
-class RetryStrategieModule:
-      def execute(function, *args, **kwargs):
-          pass
+class ExponentialBackoff(RetryStrategy):
+    def __init__(self, initial_delay=1, max_delay=120, factor=2):
+        self.initial_delay = initial_delay
+        self.max_delay = max_delay
+        self.factor = factor
+
+    @log_call
+    def execute(self, func, *args, **kwargs):
+        delay = self.initial_delay
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(f"Exception occurred: {e}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+                delay = min(delay * self.factor, self.max_delay)
+                if delay > self.max_delay:
+                    raise e
 
 
-class ExponentialBackoff(RetryStrategieModule):
-   def __init__(self, retry_attemps=3, factor=2, max_delay=60):
-      self.retry_attemps = retry_attemps
-      self.factor = factor
-      self.max_delay = max_delay
+class JitterRetry(RetryStrategy):
+    def __init__(self, initial_delay=1, max_delay=60, factor=2):
+        self.initial_delay = initial_delay
+        self.max_delay = max_delay
+        self.factor = factor
 
-   def execute(self,function, *args, **kwargs):
-      for i in range(self.retry_attemps):
-         try:
-            return function(*args, **kwargs)
-         except Exception as e:
-            if i == self.retry_attemps - 1:
-               raise e
-            else:
-               time.sleep(min(self.factor**i, self.max_delay))
+    def execute(self, func, *args, **kwargs):
+        delay = self.initial_delay
+        while True:
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if delay > self.max_delay:
+                    raise e
+                delay *= self.factor
 
-
-
-class JitteredExponentialBackoff(RetryStrategieModule):
-   def __init(self, jitter=0.5, retry_attemps=3, factor=2, max_delay=60):
-      self.factor = factor
-      self.max_delay = max_delay
-      self.jitter = jitter
-      self.retry_attemps = retry_attemps
-   
-   def execute(self,function, *args, **kwargs):
-      for i in range(self.retry_attemps):
-         try:
-            return function(*args, **kwargs)
-         except Exception as e:
-            if i == self.retry_attemps - 1:
-               raise e
-            else:
-               time.sleep(min(self.factor**i + random.random(0,self.jitter), self.max_delay))
-
-
-
-retry_strategy_mapping = {
-   'EXPONENTIAL_BACKOFF' : ExponentialBackoff,
-   'JITTERED_EXPONENTIAL_BACKOFF' : JitteredExponentialBackoff
+RETRY_STRATEGIES = {
+    'EXPONENTIAL_BACKOFF': ExponentialBackoff,
+    'JITTER_RETRY': JitterRetry,
 }
 
+def get_retry_strategy(strategy_name: str):
+    strategy_class = RETRY_STRATEGIES.get(strategy_name)
+    if strategy_class is None:
+        raise ValueError(f"Unknown retry strategy: {strategy_name}")
+    return strategy_class()
 
-def get_class(retry_strategy: str):
-      try:
-            return retry_strategy_mapping[retry_strategy]
-      except KeyError:
-            raise ValueError(f'Invalid retry strategy: {retry_strategy}')
 
+def retry(strategy: RetryStrategy):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            return strategy.execute(func, *args, **kwargs)
+        return wrapper
 
-def retry(retry_strategy: RetryStrategieModule):
-   def decorator(function):
-      @wraps(function)
-      def wrapper(*args, **kwargs):
-         return retry_strategy.execute(function, *args, **kwargs)
-      return wrapper
-   return decorator
+    return decorator
