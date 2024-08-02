@@ -10,6 +10,7 @@ from weather_client_module import WeatherClient
 class GatewayModule(Module):
    def __init__(self, service):
       self.service = service
+      self.retry_strategie = config('RETRY_STRATEGY')
 
    def configure(self, binder: Binder) -> None:
       events_client = EventsClient(self.service)

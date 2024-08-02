@@ -98,40 +98,6 @@ services:
           cpus: '0.5'
           memory: 600M
 
-  # service-two-1:
-  #   build: service_two
-  #   depends_on:
-  #     microskel:
-  #       condition: service_started
-  #     consul-agent:
-  #       condition: service_started
-  #     logstash-agent:
-  #       condition: service_started
-  #   environment:
-  #     - MICROSERVICE_NAME=service_two
-  #     - MICROSERVICE_HOST=service-two-1
-  #     - MICROSERVICE_PORT=5000
-  #     - MICROSERVICE_DEBUG=True
-  #     - CONSUL_CHECK_INTERVAL=20s
-  #     - CONSUL_CHECK_TIMEOUT=10s
-  #     - CONSUL_HOST=consul-agent
-  #     - CONSUL_PORT=8500
-  #     - LOGSTASH_AGENT_HOST=logstash-agent
-  #     - LOGSTASH_AGENT_PORT=51515
-  #     - LOGSTASH_ENABLED=True
-  #     - USE_DB=False
-  #   networks:
-  #     siemens:
-  #       ipv4_address: 10.10.10.12
-  #   ports:
-  #     - "8082:5000"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '0.25'
-  #         memory: 100M
-
-
   events-db:
     image: mysql
     environment:
@@ -278,6 +244,7 @@ services:
       - LOGSTASH_AGENT_PORT=51515
       - LOGSTASH_ENABLED=True
       - USE_DB=False
+      - RETRY_STRATEGY=EXPONENTIAL_BACKOFF
     networks:
       siemens:
         ipv4_address: 10.10.10.11
